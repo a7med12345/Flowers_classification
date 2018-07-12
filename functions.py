@@ -248,13 +248,8 @@ def predict(image_path, model, device,topk=5):
         
         return topk,classes
     
-def sanity_check(img_path,model):
+def name_probab(img_path,model,cat_to_name):
     prob,class_index=predict(img_path, model)
     max_index=np.argmax(prob)
-    name_max=cat_to_name[class_index[max_index]]
-    im = Image.open(img_path)
-    fig, (ax1, ax2) = plt.subplots(2, 1,figsize=(7,7))
-    ax1.set_title(name_max)
-    imshow(process_image(im),ax=ax1,title=name_max)
-    class_name= [cat_to_name[x] for x in class_index]
-    ax2.barh(class_name, prob,align='center', alpha=0.5)
+    name=cat_to_name[class_index[max_index]]
+    return prob, name 
