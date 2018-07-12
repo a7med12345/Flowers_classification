@@ -97,9 +97,9 @@ def data_preparation(data_dir,train_batch=32,valid_batch=16,test_batch=16):
 
 criterion = nn.NLLLoss()
 
-def train(model, trainloader,validloader,testloader,learning_rate,device,epochs):
+def train(model, trainloader,validloader,testloader,optimizer,device,epochs):
     
-    optimizer = optim.Adam(model.fc.parameters(), learning_rate)
+    #optimizer = optim.Adam(model.fc.parameters(), learning_rate)
     epochs = epochs
     model.train(True)
     # change to device
