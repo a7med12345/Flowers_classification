@@ -15,8 +15,9 @@ def pretrained_model_info(pretrained_name):
     
     #upload the pretrained model
     x="models."+pretrained_name+"(pretrained=True)"
-    exec("model="+x)
-    
+    #exec("model="+x)
+    model = eval(x)
+    #print(model)
     #Get keys and values of the model
     list_keys=[]
     list_value=[]
@@ -92,16 +93,16 @@ def data_preparation(data_dir,train_batch=32,valid_batch=16,test_batch=16):
     
     return train_datasets,trainloader,validloader,testloader
 
+criterion = nn.NLLLoss()
 
 def train(model, trainloader,validloader,testloader,learning_rate,device,epochs):
     
-    criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.fc.parameters(), learning_rate)
     epochs = epochs
     model.train(True)
     # change to device
     model.to(device)
-
+    print_every = 40
     for e in range(epochs):
         steps = 0
         running_loss = 0
@@ -119,13 +120,16 @@ def train(model, trainloader,validloader,testloader,learning_rate,device,epochs)
             optimizer.step()
 
             running_loss += loss.item()
-
-            valid_loss,valid_accuracy = valid(model,valiloader,device)
+           
+            
             test_accuracy = test(model,testloader,device)
-            print("Epoch: {}/{}... ".format(e+1, epochs),
-                     "Loss: {:.4f}".format(running_loss/steps))
-            print("validation_loss: {:.4f}".format(valid_loss),"validation_accuracy: {:.4f}".format(valid_accuracy)) 
-            #print( "Accuracy: {:.4f}".format(running_loss/steps))
+            if steps % print_every == 0:
+                valid_loss,valid_accuracy = valid(model,validloader,device)
+                print("Epoch: {}/{}... ".format(e+1, epochs),
+                     "Loss: {:.4f}".format(running_loss/print_every))
+                running_loss = 0
+                print("validation_loss: {:.4f}".format(valid_loss),'validation_accuracy: %d %%' % valid_accuracy)
+                
             
     save_checkpoint(model,optimizer,epoch,train_datasets,filepath='new.pkl') 
     
@@ -149,7 +153,7 @@ def valid(model,validloader,device):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     #print("Validation_Loss: {:.4f}".format(running_loss/step))
-    return running_loss/step,(100 * correct / total) 
+    return running_loss/step,(100 * (correct / total)) 
 
 def test(model,testloader,device):
     correct = 0
