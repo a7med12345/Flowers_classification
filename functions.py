@@ -188,3 +188,73 @@ def load_checkpoint(model,filename='saved_model_3.pkl'):
     #model.fc = saved['classifier']
     model.load_state_dict(saved['state_dict'])
     return model
+
+def process_image(image):
+    ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
+        returns an Numpy array
+    '''
+    side = 256
+    w,h = image.size
+    max_side = max(w,h)
+    #plt.imshow(image)
+
+    if(max_side==w):
+        ratio = w/h
+        x=[int(256*ratio),256]
+    else:
+        ratio=h/w
+        x=[256,int(256*ratio)]
+        
+    image = image.resize(x)
+    width,height = image.size
+    
+    left = (width - 224)/2
+    top = (height - 224)/2
+    right = (width + 224)/2
+    bottom = (height + 224)/2
+    
+    image = image.crop((left, top, right, bottom))
+    
+
+    np_image = np.array(image)
+    
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    np_image = np_image/255
+    np_image = (np_image-mean)/std
+    np_image = np_image.transpose((2,0,1))
+    
+    return np_image
+
+def predict(image_path, model, device,topk=5):
+    ''' Predict the class (or classes) of an image using a trained deep learning model.
+    '''
+    with torch.no_grad():
+        im = Image.open(image_path)
+        input_im = process_image(im)
+        model.to(device)
+        model.eval()
+        input=(torch.from_numpy(input_im)).unsqueeze_(0).float()
+        input = input.to(device)
+    
+        output=model(input)
+        topk, indices = output.topk(topk)
+        
+        topk = np.exp(topk.data.cpu().numpy()[0])
+        indices = indices.data.cpu().numpy()[0]
+        
+        inv_map = {v: k for k, v in train_datasets.class_to_idx.items()}
+        classes = [inv_map[x] for x in indices]
+        
+        return topk,classes
+    
+def sanity_check(img_path,model):
+    prob,class_index=predict(img_path, model)
+    max_index=np.argmax(prob)
+    name_max=cat_to_name[class_index[max_index]]
+    im = Image.open(img_path)
+    fig, (ax1, ax2) = plt.subplots(2, 1,figsize=(7,7))
+    ax1.set_title(name_max)
+    imshow(process_image(im),ax=ax1,title=name_max)
+    class_name= [cat_to_name[x] for x in class_index]
+    ax2.barh(class_name, prob,align='center', alpha=0.5)
