@@ -39,7 +39,7 @@ def pretrained_model_info(pretrained_name):
     #return name of the classifier layer and the size of its input
     return model,last_layer_key,int(x[1])
 
-def building_model(hiden_units,pretrained_name):
+def building_model(hiden_units,pretrained_name,learning_rate):
     
     model,key,size = pretrained_model_info(pretrained_name)
     
@@ -59,7 +59,9 @@ def building_model(hiden_units,pretrained_name):
     #replacing the classifier
     x="model."+key+"=classifier"
     exec(x)
-    return model
+    x= "optim.Adam(model."+key+".parameters(), learning_rate)"
+    optimizer = eval(x)
+    return model,optimizer
 
 def data_preparation(data_dir,train_batch=32,valid_batch=16,test_batch=16):
     
