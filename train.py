@@ -35,14 +35,14 @@ def main():
     else:
         device = torch.device("cpu")
                   
-    model = building_model(args.hidden_units,args.arch)
+    model,optimizer = building_model(args.hidden_units,args.arch,args.learning_rate)
     
     #Preparing data
     train_datasets,trainloader,validloader,testloader = data_preparation(args.data_dir)
     
     #training and testing the model
     
-    train(model, trainloader,validloader,testloader,args.learning_rate,device,args.epochs)
+    train(model, trainloader,validloader,testloader,optimizer,device,args.epochs)
 
 if __name__ == "__main__":
     main()  
