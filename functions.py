@@ -133,7 +133,7 @@ def train(model, trainloader,validloader,testloader,optimizer,device,epochs):
                 print("validation_loss: {:.4f}".format(valid_loss),'validation_accuracy: %d %%' % valid_accuracy)
                 
             
-    save_checkpoint(model,optimizer,epoch,train_datasets,filepath='new.pkl') 
+    save_checkpoint(model,epoch,train_datasets,hiden_units,pretrained_name,learning_rate,filename='new.pkl') 
     
     
 def valid(model,validloader,device):
@@ -172,21 +172,25 @@ def test(model,testloader,device):
             correct += (predicted == labels).sum().item()
     return   (100 * correct / total)   
 
-def save_checkpoint(model,optimizer,epoch,train_datasets,filename='new.pkl'):
+def save_checkpoint(model,epoch,train_datasets,hiden_units,pretrained_name,learning_rate,filename='new.pkl'):
     state = {
+    'hiden_units': hiden_units,
+    'pretrained_name': pretrained_name,
+    'learning_rate': learning_rate,
     'epoch': epoch,
     'state_dict': model.state_dict(),
-    'optimizer':optimizer,
-    'class_to_idx': train_datasets.class_to_idx,
+    'class_to_idx': train_datasets.class_to_idx
             }
     torch.save(state, filename)
     
-def load_checkpoint(model,filename='saved_model_3.pkl'):
-    saved = torch.load(filename)
-    #model=saved['state_dict']
-    #model= models.resnet101(pretrained=True)
-    #model.fc = saved['classifier']
+def load_checkpoint(filename='new.pkl'):
+    
+    saved = torch.load(filename,lambda storage, loc: storage)
+    
+    model,optimizer = building_model(saved['hiden_units'],saved['pretrained_name'],saved['learning_rate'])
+    
     model.load_state_dict(saved['state_dict'])
+    
     return model
 
 def process_image(image):
