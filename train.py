@@ -3,7 +3,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='PyTorch flower classification')
 
-parser.add_argument('--epochs', default=3, type=int, metavar='N',
+parser.add_argument('--epoch', default=3, type=int, metavar='N',
                     help='number of total epochs to run')
 
 parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
