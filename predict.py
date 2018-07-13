@@ -1,4 +1,3 @@
-
 from functions import*
 import argparse
 import torch
@@ -16,17 +15,17 @@ parser.add_argument('--category_names')
 
 def main():
   args = parser.parse_args()
-    if(args.gpu):
+  if(args.gpu):
         if(torch.cuda.is_available()):
             device = torch.device("cuda:0")
         else:
             print("GPU not available")
             return
-    else:
-        device = torch.device("cpu")
+  else:
+           device = torch.device("cpu")
    
   model,class_to_idx = load_checkpoint(args.checkpoint)
-  print(predict(image_path, model, device,class_to_idx))
+  print(predict(args.image_path, model, device,class_to_idx))
     
- if __name__ == "__main__":
+if __name__ == "__main__":
     main()  
