@@ -42,7 +42,8 @@ def main():
     
     #training and testing the model
     
-    train(model, trainloader,validloader,testloader,optimizer,device,args.epochs)
+    train(model, trainloader,validloader,testloader,optimizer,device,args.epochs,args.hidden_units,/
+          args.arch,args.learning_rate,args.save-dir)
 
 if __name__ == "__main__":
     main()  
