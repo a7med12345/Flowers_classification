@@ -1,4 +1,3 @@
-# Imports here
 import numpy as np
 import torch
 from torch import nn
@@ -7,10 +6,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets,models 
 from collections import OrderedDict
-import copy
 from PIL import Image
-import matplotlib.pyplot as plt
-
 def pretrained_model_info(pretrained_name):
     
     #upload the pretrained model
@@ -97,7 +93,7 @@ def data_preparation(data_dir,train_batch=32,valid_batch=16,test_batch=16):
 
 criterion = nn.NLLLoss()
 
-def train(model, trainloader,validloader,testloader,optimizer,device,epochs):
+def train(model, trainloader,validloader,testloader,optimizer,device,epochs,hiden_units,pretrained_name,learning_rate,file_path):
     
     #optimizer = optim.Adam(model.fc.parameters(), learning_rate)
     epochs = epochs
@@ -133,7 +129,7 @@ def train(model, trainloader,validloader,testloader,optimizer,device,epochs):
                 print("validation_loss: {:.4f}".format(valid_loss),'validation_accuracy: %d %%' % valid_accuracy)
                 
             
-    save_checkpoint(model,epoch,train_datasets,hiden_units,pretrained_name,learning_rate,filename='new.pkl') 
+    save_checkpoint(model,epoch,train_datasets,hiden_units,pretrained_name,learning_rate,file_path) 
     
     
 def valid(model,validloader,device):
@@ -191,7 +187,7 @@ def load_checkpoint(filename='new.pkl'):
     
     model.load_state_dict(saved['state_dict'])
     
-    return model
+    return model,saved['class_to_idx']
 
 def process_image(image):
     ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
@@ -230,7 +226,7 @@ def process_image(image):
     
     return np_image
 
-def predict(image_path, model, device,topk=5):
+def predict(image_path, model, device,class_to_idx,topk=5):
     ''' Predict the class (or classes) of an image using a trained deep learning model.
     '''
     with torch.no_grad():
@@ -247,12 +243,12 @@ def predict(image_path, model, device,topk=5):
         topk = np.exp(topk.data.cpu().numpy()[0])
         indices = indices.data.cpu().numpy()[0]
         
-        inv_map = {v: k for k, v in train_datasets.class_to_idx.items()}
+        inv_map = {v: k for k, v in class_to_idx.items()}
         classes = [inv_map[x] for x in indices]
         
         return topk,classes
     
-def name_probab(img_path,model,cat_to_name):
+def name_probab(topk,classes):
     prob,class_index=predict(img_path, model)
     max_index=np.argmax(prob)
     name=cat_to_name[class_index[max_index]]
