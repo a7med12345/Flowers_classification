@@ -93,14 +93,15 @@ def data_preparation(data_dir,train_batch=32,valid_batch=16,test_batch=16):
 
 criterion = nn.NLLLoss()
 
-def train(model, trainloader,validloader,testloader,optimizer,device,epochs,hiden_units,pretrained_name,learning_rate,file_path):
+def train(model,train_datasets,trainloader,validloader,testloader,optimizer,device,epochs,hiden_units,pretrained_name,\
+          learning_rate,file_path):
     
     #optimizer = optim.Adam(model.fc.parameters(), learning_rate)
     epochs = epochs
     model.train(True)
     # change to device
     model.to(device)
-    print_every = 40
+    print_every = 1
     for e in range(epochs):
         steps = 0
         running_loss = 0
@@ -118,9 +119,7 @@ def train(model, trainloader,validloader,testloader,optimizer,device,epochs,hide
             optimizer.step()
 
             running_loss += loss.item()
-           
             
-            test_accuracy = test(model,testloader,device)
             if steps % print_every == 0:
                 valid_loss,valid_accuracy = valid(model,validloader,device)
                 print("Epoch: {}/{}... ".format(e+1, epochs),
@@ -129,7 +128,7 @@ def train(model, trainloader,validloader,testloader,optimizer,device,epochs,hide
                 print("validation_loss: {:.4f}".format(valid_loss),'validation_accuracy: %d %%' % valid_accuracy)
                 
             
-    save_checkpoint(model,epoch,train_datasets,hiden_units,pretrained_name,learning_rate,file_path) 
+    save_checkpoint(model,epochs,train_datasets,hiden_units,pretrained_name,learning_rate,file_path) 
     
     
 def valid(model,validloader,device):
@@ -142,6 +141,7 @@ def valid(model,validloader,device):
         step=0
         for ii,(inputs,labels) in enumerate(validloader):
             step+=1
+            print(step)
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model.forward(inputs)
             loss = criterion(outputs, labels)
@@ -226,7 +226,7 @@ def process_image(image):
     
     return np_image
 
-def predict(image_path, model, device,class_to_idx,topk=5):
+def predict(image_path, model, device,class_to_idx,topk):
     ''' Predict the class (or classes) of an image using a trained deep learning model.
     '''
     with torch.no_grad():
@@ -248,8 +248,3 @@ def predict(image_path, model, device,class_to_idx,topk=5):
         
         return topk,classes
     
-def name_probab(topk,classes):
-    prob,class_index=predict(img_path, model)
-    max_index=np.argmax(prob)
-    name=cat_to_name[class_index[max_index]]
-    return prob, name 
