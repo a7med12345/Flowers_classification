@@ -141,7 +141,7 @@ def valid(model,validloader,device):
         step=0
         for ii,(inputs,labels) in enumerate(validloader):
             step+=1
-            print(step)
+            
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model.forward(inputs)
             loss = criterion(outputs, labels)
